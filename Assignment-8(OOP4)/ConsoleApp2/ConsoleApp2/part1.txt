@@ -1,0 +1,18 @@
+#region Part1Q1
+/*
+ * static happens early at the compile time but the dynamic happens at the run time
+ */
+#endregion
+
+#region Part1Q2
+/*
+ * method overload: multiple methods with the same name and a different parameters => static Polymorphism, compile time
+ * method override: A derived class provides a new implementation of a base class method => dynamic, run time 
+ */
+#endregion
+
+#region Part1Q3
+/*
+ * virtual: Allows a method in a base class to be overridden in a derived class, override: Provides a new implementation of a virtual method in the derived class.
+ */
+#endregion
