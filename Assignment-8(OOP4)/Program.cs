@@ -28,34 +28,14 @@ namespace ConsoleApp2
             }
         }
 
-        #region Interfaces
-
-        public interface IPrintable
-        {
-            void Print();
-        }
-
-        public interface IBookable
-        {
-            bool Book();
-            bool Cancel();
-            bool IsBooked { get; }
-        }
-
-        #endregion
-
-
         #region Ticket Base Class
-
-        public class Ticket : IPrintable, IBookable, ICloneable
+        public class Ticket
         {
             private static int ticketCounter = 0;
             private string movieName;
             private double price;
 
             public int TicketId { get; private set; }
-
-            public bool IsBooked { get; private set; }
 
             public string MovieName
             {
@@ -91,53 +71,26 @@ namespace ConsoleApp2
                 Price = price;
             }
 
-            public virtual void Print()
+            public virtual void PrintTicket()
             {
                 double afterTax = Price * 1.14;
 
-                Console.WriteLine($"[Ticket #{TicketId}] {MovieName} | {Type} | Price: {Price} | After Tax: {afterTax:F1} | Booked: {(IsBooked ? "Yes" : "No")}");
-            }
-
-            public bool Book()
-            {
-                if (IsBooked)
-                    return false;
-
-                IsBooked = true;
-                return true;
-            }
-
-            public bool Cancel()
-            {
-                if (!IsBooked)
-                    return false;
-
-                IsBooked = false;
-                return true;
-            }
-
-            public virtual object Clone()
-            {
-                Ticket clone = (Ticket)this.MemberwiseClone();
-                ticketCounter++;
-                clone.TicketId = ticketCounter;
-                clone.IsBooked = false;
-                return clone;
+                Console.WriteLine($"Ticket #{TicketId} | {MovieName} | Price: {Price} EGP | After Tax: {afterTax:F2} EGP");
             }
 
             public void SetPrice(decimal price)
             {
                 Price = (double)price;
+                Console.WriteLine($"Setting price directly: {Price}");
             }
 
             public void SetPrice(decimal basePrice, decimal multiplier)
             {
                 Price = (double)(basePrice * multiplier);
+                Console.WriteLine($"Setting price with multiplier: {basePrice} x {multiplier} = {Price}");
             }
         }
-
         #endregion
-
 
         #region Child Classes
 
@@ -151,11 +104,10 @@ namespace ConsoleApp2
                 SeatNumber = seatNumber;
             }
 
-            public override void Print()
+            public override void PrintTicket()
             {
-                double afterTax = Price * 1.14;
-
-                Console.WriteLine($"[Ticket #{TicketId}] {MovieName} | Standard | Seat: {SeatNumber} | Price: {Price} | After Tax: {afterTax:F1} | Booked: {(IsBooked ? "Yes" : "No")}");
+                base.PrintTicket();
+                Console.WriteLine($"Seat: {SeatNumber}");
             }
         }
 
@@ -170,11 +122,10 @@ namespace ConsoleApp2
                 LoungeAccess = loungeAccess;
             }
 
-            public override void Print()
+            public override void PrintTicket()
             {
-                double afterTax = Price * 1.14;
-
-                Console.WriteLine($"[Ticket #{TicketId}] {MovieName} | VIP | Lounge: {(LoungeAccess ? "Yes" : "No")} | Fee: {ServiceFee} | Price: {Price} | After Tax: {afterTax:F1} | Booked: {(IsBooked ? "Yes" : "No")}");
+                base.PrintTicket();
+                Console.WriteLine($"Lounge: {(LoungeAccess ? "Yes" : "No")} | Service Fee: {ServiceFee} EGP");
             }
         }
 
@@ -188,19 +139,16 @@ namespace ConsoleApp2
                 Is3D = is3D;
             }
 
-            public override void Print()
+            public override void PrintTicket()
             {
-                double afterTax = Price * 1.14;
-
-                Console.WriteLine($"[Ticket #{TicketId}] {MovieName} | IMAX | 3D: {(Is3D ? "Yes" : "No")} | Price: {Price} | After Tax: {afterTax:F1} | Booked: {(IsBooked ? "Yes" : "No")}");
+                base.PrintTicket();
+                Console.WriteLine($"IMAX 3D: {(Is3D ? "Yes" : "No")}");
             }
         }
 
         #endregion
 
-
         #region Projector Class
-
         public class Projector
         {
             public void Start()
@@ -213,12 +161,9 @@ namespace ConsoleApp2
                 Console.WriteLine("Projector stopped.");
             }
         }
-
         #endregion
 
-
         #region Cinema Class
-
         public class Cinema
         {
             public string CinemaName { get; set; }
@@ -246,86 +191,62 @@ namespace ConsoleApp2
 
             public void PrintAllTickets()
             {
-                Console.WriteLine("\n--- All Tickets ---");
+                Console.WriteLine("\n========== All Tickets ==========");
 
                 foreach (var ticket in tickets)
                 {
                     if (ticket != null)
-                        ticket.Print();
+                        ticket.PrintTicket();
                 }
             }
 
             public void OpenCinema()
             {
-                Console.WriteLine("=== Cinema Opened ===");
+                Console.WriteLine("========= Cinema Opened =========");
                 projector.Start();
             }
 
             public void CloseCinema()
             {
-                Console.WriteLine("\n=== Cinema Closed ===");
+                Console.WriteLine("\n========= Cinema Closed =========");
                 projector.Stop();
             }
         }
-
         #endregion
 
-
-        #region Helper
-
-        public static class BookingHelper
+        public static void ProcessTicket(Ticket t)
         {
-            public static void PrintAll(IPrintable[] items)
-            {
-                foreach (var item in items)
-                    item.Print();
-            }
+            Console.WriteLine("\n========== Process Single Ticket ==========");
+            t.PrintTicket();
         }
-
-        #endregion
-
 
         static void Main(string[] args)
         {
+            // Create cinema
             Cinema cinema = new Cinema("Cairo Cinema");
 
             cinema.OpenCinema();
 
-            StandardTicket t1 = new StandardTicket("Inception", new Seat('A', 5), 80, "A5");
+            Console.WriteLine("\n========== SetPrice Test ==========");
+
+            // Create tickets
+            StandardTicket t1 = new StandardTicket("Inception", new Seat('A', 5), 150, "A5");
             VIPTicket t2 = new VIPTicket("Avengers", new Seat('B', 3), 200, true);
-            IMAXTicket t3 = new IMAXTicket("Dune", new Seat('C', 2), 100, true);
+            IMAXTicket t3 = new IMAXTicket("Dune", new Seat('C', 2), 180, false);
 
-            t1.Book();
-            t2.Book();
-            t3.Book();
+            // Test both SetPrice methods
+            t1.SetPrice(150);
+            t1.SetPrice(100, 1.5m);
 
+            // Add tickets to cinema
             cinema.AddTicket(t1);
             cinema.AddTicket(t2);
             cinema.AddTicket(t3);
 
+            // Print all tickets
             cinema.PrintAllTickets();
 
-            Console.WriteLine("\n--- Clone Test ---");
-
-            VIPTicket clone = (VIPTicket)t2.Clone();
-            clone.MovieName = "Interstellar";
-
-            Console.Write("Original : ");
-            t2.Print();
-
-            Console.Write("Clone    : ");
-            clone.Print();
-
-            Console.WriteLine("\n--- After Cancellation ---");
-
-            t1.Cancel();
-            t1.Print();
-
-            Console.WriteLine("\n--- BookingHelper.PrintAll ---");
-
-            IPrintable[] arr = { t1, t2, t3 };
-
-            BookingHelper.PrintAll(arr);
+            ProcessTicket(t2);
 
             cinema.CloseCinema();
         }
